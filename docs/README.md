@@ -1,16 +1,17 @@
-This is a state of the art Django CMS template. It's used in at least 10 live projects at the moment.
+This is a production-ready cutting-edge dockerized django CMS project example. It includes the necessary CMS plugins for an average website and a solid webpack configuration (webpack5 + scss + typescript + vue + live reloading for development).
 
-This project adheres to the following coding guidelines - https://gitlab.com/what-digital/tech-docs/-/tree/master/coding-guidelines
+The project can be deployed to any dockerized environment. We provide setup instructions for [divio](/docs/deployment-divio.md) and [heroku](/docs/deployment-heroku.md).
 
-### Intro
+It's also possible to run this project locally out of the box, you can clone it and follow [the local setup instructions](/docs/local-setup-instructions.md) to try it out.
 
-The main features:
-- production-ready plugins setup (galleries, google maps, blog, multi-columns & responsive content, etc)
-- latest webpack version configuration with typescript and scss support, including a highly performant real-time compilation
-- well tested integration of the cutting edge critical fixes for Django CMS and its core ecosystem, that haven't been deployed on the mainstream (for details see eg [djangocms-helpers](https://gitlab.com/what-digital/djangocms-helpers) package)
 
-### Guidelines
+## Tech Stack
 
-- [general](/docs/guidelines/general.md)
-- [frontend](/docs/guidelines/frontend.md)
-- [backend](/docs/guidelines/backend.md)
+- Python 3.10.6
+- Django 4.2
+- Django CMS 3.11.3
+- Node 18
+- Webpack 5
+- TypeScript 5
+- Bootstrap 4
+- yarn 3

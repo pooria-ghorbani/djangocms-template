@@ -4,13 +4,14 @@ from typing import List
 
 import dj_database_url
 import dj_email_url
-import django_cache_url
+#import django_cache_url
 import environ
 from django.urls import reverse_lazy
 from django_storage_url import dsn_configured_storage_class
 from link_all.dataclasses import LinkAllModel
 from enumfields import Enum as EnumFields
 
+from django.core.exceptions import ImproperlyConfigured
 
 ################################################################################
 # divio
@@ -42,7 +43,7 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'backend.settings'
 
 BASE_DIR: str = locals()['BASE_DIR']
 
-# environ.Env.read_env(os.path.join(BASE_DIR, '.local-env'))  # Uncomment if you use local setup without docker
+
 DOMAIN: str = locals().get('DOMAIN', 'localhost')
 SITE_NAME: str = locals().get('SITE_NAME', 'dev testing site')
 
@@ -55,13 +56,13 @@ USE_TZ = True
 TIME_ZONE = 'Europe/Zurich'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env.bool('DEBUG', default=False)
+DEBUG = env.bool('DEBUG', default=True)
 # you can use this on the live environment to get the full exception stack trace in the logs
-DEBUG_PROPAGATE_EXCEPTIONS = env.bool('DEBUG_PROPAGATE_EXCEPTIONS', default=False)
+DEBUG_PROPAGATE_EXCEPTIONS = env.bool('DEBUG_PROPAGATE_EXCEPTIONS', default=True)
 # this is set by Divio environment automatically
 SECRET_KEY = env.str('SECRET_KEY', default="this-is-not-very-random")
 
-ALLOWED_HOSTS = [env.str('DOMAIN', default=""),]
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'wisirecord.com', '91.107.249.157']
 if DEBUG:
     ALLOWED_HOSTS = ["*",]
 
@@ -184,7 +185,7 @@ INSTALLED_APPS.extend([
 
 
 MIDDLEWARE = [
-    'django.middleware.cache.UpdateCacheMiddleware',
+    #'django.middleware.cache.UpdateCacheMiddleware',
     'cms.middleware.utils.ApphookReloadMiddleware',
     'django.middleware.gzip.GZipMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -205,15 +206,35 @@ MIDDLEWARE = [
     'admin_reorder.middleware.ModelAdminReorder',
     'djangocms_redirect.middleware.RedirectMiddleware',
     'link_all.middleware.RedirectExceptionMiddleware',
-    'django.middleware.cache.FetchFromCacheMiddleware',
+    #'django.middleware.cache.FetchFromCacheMiddleware',
 ]
 
 
 # Configure database using DATABASE_URL; fall back to sqlite file when no
 # environment variable is available, e.g. during Docker build
-DATABASE_URL = env.str('DATABASE_URL', default=f'sqlite:///{BASE_DIR}/db.sqlite')
+environ.Env.read_env()  # Uncomment if you use local setup without docker
+DATABASE_URL = env.str('DATABASE_URL') #default=f'sqlite:///{BASE_DIR}/db.sqlite')
 DATABASES = {'default': dj_database_url.parse(DATABASE_URL)}
+"""
+def get_env_variable(var_name):
+    try:
+        return os.environ[var_name]
+    except KeyError:
+        error_msg = "Set the {} environment variable".format(var_name)
+        raise ImproperlyConfigured(error_msg)
 
+# Database settings
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': get_env_variable('DB_NAME'),
+        'USER': get_env_variable('DB_USER'),
+        'PASSWORD': get_env_variable('DB_PASSWORD'),
+        'HOST': get_env_variable('DB_HOST'),
+        'PORT': get_env_variable('DB_PORT'),
+    }
+}
+"""
 
 AUTH_USER_MODEL = 'backend_auth.User'
 
@@ -260,11 +281,11 @@ SERVER_EMAIL = email_config.get('SERVER_EMAIL', 'root@localhost')
 DEFAULT_FROM_EMAIL = email_config.get('DEFAULT_FROM_EMAIL', f'{SITE_NAME} <info@{DOMAIN}>')
 
 
-if DJANGO_ENV == DjangoEnv.LOCAL:
-    CACHE_URL = 'dummy://'  # to disable a warning from aldryn-django
+#if DJANGO_ENV == DjangoEnv.LOCAL:
+#    CACHE_URL = 'dummy://'  # to disable a warning from aldryn-django
 
 # avoid locmem as default on production, it doesn't work properly
-CACHES = {'default': django_cache_url.config(default="dummy://")}
+#CACHES = {'default': django_cache_url.config(default="dummy://")}
 
 
 SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=True)
@@ -272,9 +293,9 @@ SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=True)
 HTTP_PROTOCOL = env.str('HTTP_PROTOCOL', 'https')
 
 
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'frontend/'),
-]
+#STATICFILES_DIRS = [
+#    os.path.join(BASE_DIR, 'frontend/'),
+#]
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BACKEND_DIR, 'static_collected/')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
@@ -318,7 +339,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 GTM_CONTAINER_ID = env.str('GTM_CONTAINER_ID', 'GTM-1234')
 
-WEBPACK_DEV_URL = env.str('WEBPACK_DEV_URL', default='http://0.0.0.0:8090')
+#WEBPACK_DEV_URL = env.str('WEBPACK_DEV_URL', default='http://0.0.0.0:8090')
 
 
 SENTRY_DSN = env.str('SENTRY_DSN', '')
@@ -326,7 +347,7 @@ SENTRY_DSN = env.str('SENTRY_DSN', '')
 SETTINGS_EXPORT = [
     'DOMAIN',
     'SITE_NAME',
-    'WEBPACK_DEV_URL',
+    #'WEBPACK_DEV_URL',
     'DJANGO_ENV',
     'DJANGO_ENV_ENUM',
     'SENTRY_DSN',
@@ -403,7 +424,7 @@ RECAPTCHA_SCORE_THRESHOLD = 0.85
 # }
 # beware that you will have to disable django CMS caching separately from this
 # by removing the django CMS caching middleware
-
+"""
 if DEBUG:
     CACHE_MIDDLEWARE_SECONDS = 0
     # there's a bug with caching - https://github.com/what-digital/divio/issues/9
@@ -424,7 +445,7 @@ else:
         'permissions': one_hour,
         'content': four_hours,
     }
-
+"""
 
 DEFAULT_RENDERER_CLASSES = (
     'rest_framework.renderers.JSONRenderer',
@@ -503,13 +524,6 @@ CMS_LANGUAGES = {
 PARLER_LANGUAGES = CMS_LANGUAGES
 
 
-# for divio deployment, overrides control.divio.com
-MIGRATION_COMMANDS = [
-    'python manage.py migrate',
-    'python manage.py collectstatic --noinput',
-    'python manage.py test_pages_on_real_db',
-    'python manage.py clear_cache',
-]
 
 
 CMS_PLACEHOLDER_CONF = {
@@ -609,18 +623,7 @@ CKEDITOR_SETTINGS = {
         '6rem;'
         '7rem'
     ),
-    'stylesSet': f'default:{STATIC_URL}global/ts/ckeditor-config.js',
-    'contentsCss': [
-        f'{WEBPACK_DEV_URL}/vendor.css' if DJANGO_ENV == DjangoEnv.LOCAL else f'{STATIC_URL}dist/vendor.css',
-        f'{WEBPACK_DEV_URL}/global.css' if DJANGO_ENV == DjangoEnv.LOCAL else f'{STATIC_URL}dist/global.css',
-    ],
-    'config': {
-        'allowedContent': True, # allows html tags
-        'fillEmptyBlocks': False, # doesn't seem to be doing anything, but was part of the old config
-    },
-    'pasteFromWordPromptCleanup': True,
-    'pasteFromWordRemoveFontStyles': True,
-    'forcePasteAsPlainText': False,
+   
 }
 TEXT_ADDITIONAL_TAGS = [
     'iframe',  # djangocms-text-ckeditor uses html5lib to sanitize HTML and deletes iframes
